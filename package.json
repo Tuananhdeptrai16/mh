@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "antd": "^4.24.16",
+    "antd": "^5.23.0",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
+    "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-draggable": "^4.4.6",
     "react-intl": "^7.1.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1"

@@ -8,111 +8,123 @@ import {
   getErrorsResponse,
 } from '../shared/utils/Service';
 import { isEmpty, isPromise } from '../shared/utils/Typeof';
-import notification from '../shared/utils/notification';
-
+import useCustomNotification from '../shared/utils/notification';
 const useCallApi = ({ success, callApi, error = undefined, useToastShowError = true, customErrorHandler = null }) => {
-    const { messages } = useIntl();
-    const [loading, setLoading] = useState(false);
-  
-    const send = (params) => {
-      return new Promise((resolve, reject) => {
-        let rs = callApi(params);
-        if (!isPromise(rs)) {
-          reject({ message: 'API không trả về Promise' });
-          return;
-        }
-        setLoading(true);
-        rs.then((dataFromServer = {}) => {
-          setLoading(false);
-          console.log('Dữ liệu nhận được từ server:', dataFromServer);  // Debug
-          if (
-            isErrorResponse(dataFromServer) ||
-            isErrorResponse(dataFromServer.data) ||
-            dataFromServer.status >= 400
-          ) {
+  const { messages } = useIntl();
+  const [loading, setLoading] = useState(false);
+  const { error: handleError } = useCustomNotification();
+  const send = (params) => {
+    return new Promise((resolve, reject) => {
+      let rs = callApi(params);
+      if (!isPromise(rs)) {
+        reject({ message: 'API không trả về Promise' });
+        return;
+      }
+      setLoading(true);
 
-            const errorMessage = getMessageResponse(dataFromServer.data);
-            const errors = getErrorsResponse(dataFromServer);
-  
-            if (customErrorHandler) {
-              customErrorHandler(dataFromServer);
-            }
-  
-            if (useToastShowError) {
-              if (isEmpty(errors)) {
-                notification.error(errorMessage);
-              } else {
-                const textError = Object.values(errors).map((error, index) => (
-                  <div key={index}>{error}</div>
-                ));
-                notification.error(textError);
-              }
-            }
-  
-            if (error) {
-              error({
-                code: getCodeResponse(dataFromServer),
-                message: errorMessage,
-                raw: dataFromServer,
-              });
-            }
-          } else {
-            console.log("Chạy thành công r",dataFromServer );
-            const result = getResultResponse(dataFromServer?.data);
-         //   const result = getResultResponse(dataFromServer ? dataFromServer : "không dữ liệu");
-            console.log('Dữ liệu sau khi xử lý:', result); // Debug
-            resolve(result, params);
-            if (success) {
-              success(result, params);  // Gọi success với dữ liệu đã xử lý
+      rs.then((dataFromServer = {}) => {
+        setLoading(false);
+        console.log('Dữ liệu nhận được từ server:', dataFromServer);  // Debug
+        
+        // Kiểm tra lỗi trong dữ liệu nhận được
+        if (
+          isErrorResponse(dataFromServer) ||
+          isErrorResponse(dataFromServer.data) ||
+          dataFromServer.status >= 400
+        ) {
+          const errorMessage = getMessageResponse(dataFromServer.data);
+          const errors = getErrorsResponse(dataFromServer);
+
+          // Tùy chỉnh lỗi nếu cần
+          if (customErrorHandler) {
+            customErrorHandler(dataFromServer);
+          }
+
+          // Hiển thị thông báo lỗi
+          if (useToastShowError) {
+            if (isEmpty(errors)) {
+              handleError(errorMessage);
+            } else {
+              const textError = Object.values(errors).map((error, index) => (
+                <div key={index}>{error}</div>
+              ));
+              handleError(textError);
             }
           }
-        }).catch((thrown) => {
-          setLoading(false);
-          const messageError = getMessageResponse(thrown);
-          const errors = getErrorsResponse(thrown?.raw);
-  
-          if (isEmpty(errors)) {
-            const messageShow = messages?.[messageError] || messageError;
-            notification.error(messageShow);
-            reject({
+
+          // Gọi hàm `error` nếu có
+          if (error) {
+            error({
+              code: getCodeResponse(dataFromServer),
+              message: errorMessage,
+              raw: dataFromServer,
+            });
+          }
+
+          // Trả về reject với dữ liệu lỗi nếu cần
+          reject({
+            code: getCodeResponse(dataFromServer),
+            message: errorMessage,
+            raw: dataFromServer,
+          });
+        } else {
+          // Nếu không có lỗi, trả về kết quả xử lý
+          const result = getResultResponse(dataFromServer ? dataFromServer : "không dữ liệu");
+          console.log('Dữ liệu sau khi xử lý:', result); // Debug
+          resolve(result, params);
+
+          if (success) {
+            success(result, params);  // Gọi success với dữ liệu đã xử lý
+          }
+        }
+      }).catch((thrown) => {
+        setLoading(false);
+        
+        // Xử lý lỗi từ API
+        const messageError = getMessageResponse(thrown);
+        const errors = getErrorsResponse(thrown?.raw);
+        
+        if (isEmpty(errors)) {
+          const messageShow = messages?.[messageError] || messageError;
+          handleError(messageShow);
+
+          if (error) {
+            error({
               code: getCodeResponse(thrown),
               message: messageShow,
               raw: thrown,
             });
-            if (error) {
-              error({
-                code: getCodeResponse(thrown),
-                message: messageShow,
-                raw: thrown,
-              });
-            }
-          } else {
-            const textError = Object.values(errors).map((error, index) => (
-              <div key={index}>{error}</div>
-            ));
-            notification.error(textError);
-            reject({
+          }
+        } else {
+          const textError = Object.values(errors).map((error, index) => (
+            <div key={index}>{error}</div>
+          ));
+          handleError(textError);
+
+          // Gọi reject để trả về lỗi
+          reject({
+            code: getCodeResponse(thrown),
+            message: Object.values(errors).join('\n'),
+            raw: thrown,
+          });
+
+          if (error) {
+            error({
               code: getCodeResponse(thrown),
               message: Object.values(errors).join('\n'),
               raw: thrown,
             });
-            if (error) {
-              error({
-                code: getCodeResponse(thrown),
-                message: Object.values(errors).join('\n'),
-                raw: thrown,
-              });
-            }
           }
-        });
+        }
       });
-    };
-  
-    return {
-      loading,
-      send,
-    };
+    });
   };
-  
+
+  return {
+    loading,
+    send,
+  };
+};
+
 
 export default useCallApi;

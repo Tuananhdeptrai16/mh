@@ -1,43 +1,27 @@
 import React from 'react';
-import { Button } from 'antd'; // Cần import Button từ Ant Design
-import notification from '../shared/utils/notification';
+import { Button, Space } from 'antd';
+import useCustomNotification from '../shared/utils/notification'; // Import hook
 
-const ExampleNotification = () => {
-
-  // Hàm gọi các thông báo success, info, warning, error
-  const handleSuccess = () => {
-    notification.success("Đây là thông báo thành công!");
-  };
-
-  const handleInfo = () => {
-    notification.info("Đây là thông báo thông tin!");
-  };
-
-  const handleWarning = () => {
-    notification.warning("Đây là thông báo cảnh báo!");
-  };
-
-  const handleError = () => {
-    notification.error("Đây là thông báo lỗi!");
-  };
+const App = () => {
+  const {
+    contextHolder, // contextHolder cần phải được đặt trong JSX
+    success,
+    info,
+    warning,
+    error,
+  } = useCustomNotification();
 
   return (
-    <div>
-      <h1>Thông báo Ant Design</h1>
-      <Button onClick={handleSuccess} type="primary">
-        Success Notification
-      </Button>
-      <Button onClick={handleInfo} type="default">
-        Info Notification
-      </Button>
-      <Button onClick={handleWarning} type="dashed">
-        Warning Notification
-      </Button>
-      <Button onClick={handleError} type="danger">
-        Error Notification
-      </Button>
-    </div>
+    <>
+      {contextHolder} {/* Đặt contextHolder vào trong JSX */}
+      <Space>
+        <Button onClick={() => success('Có khi lại thành công')}>Hiển thị Success</Button>
+        <Button onClick={() => info('Đây là thông tin cần chú ý.')}>Hiển thị Info</Button>
+        <Button onClick={() => warning('Hành động này có thể gây rủi ro!')}>Hiển thị Warning</Button>
+        <Button onClick={() => error('Đã xảy ra lỗi trong hệ thống.')}>Hiển thị Error</Button>
+      </Space>
+    </>
   );
 };
 
-export default ExampleNotification;
+export default App;

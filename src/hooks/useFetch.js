@@ -19,7 +19,7 @@ const generateKeySaveCache = (url, options = {}) => {
   return `${url}-${JSON.stringify(options)}`;
 };
 
-/**
+/**1
  * Custom hook for fetching data with optional caching and configurations.
  *
  * @param {Object} config - The configuration for the fetch request.

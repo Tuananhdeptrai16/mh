@@ -7,8 +7,8 @@ import {
   replace,
   uniqBy,
 } from 'lodash';
-import { htmlRegexG } from 'src/shared/constants/Regex';
-import { isArray, isString } from 'src/shared/utils/Typeof';
+import { htmlRegexG } from '../constants/Regex';
+import { isArray, isString } from '../utils/Typeof';
 
 export function nonAccentVietnamese(str) {
   if (!str) return str;

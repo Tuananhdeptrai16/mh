@@ -47,6 +47,7 @@ export const getErrorsResponse = (response, messages) => {
 };
 
 export const getCodeResponse = (response) => {
+  console.log("response",response);
   if (isError(response)) {
     try {
       return JSON.parse(response.message).status;
@@ -54,7 +55,6 @@ export const getCodeResponse = (response) => {
       console.log(e);
     }
   }
-
   return response?.code || response?.data?.code;
 };
 
